@@ -4,10 +4,10 @@ import requests
 import re
 from db import get_student_by_name, get_all_students
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = "http://localhost:11434/api/generate" # this is where the ollama server runs by default
 MODEL = "llama3"
-
-MEMORY_FILE = "memory.json"
+# i have used a json to store the previous sessions i.e., the chat memory 
+MEMORY_FILE = "memory.json" 
 
 SYSTEM_PROMPT = """
 You are a student database assistant.
@@ -54,6 +54,7 @@ def get_session_history(session_id):
 
 def update_session_history(session_id, history):
     memory = load_memory()
+    # storing only the last 20 sessions
     memory[session_id] = history[-20:]   
     save_memory(memory)
 
