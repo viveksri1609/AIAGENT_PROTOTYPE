@@ -1,4 +1,4 @@
-## AI App Prototype Using Ollama + Llama 3
+## AI App Prototype Using FASTAPI Ollama + Llama 3
 
 This application runs locally using **Ollama**.
 
@@ -20,6 +20,7 @@ ollama run llama3
 
 Open a new terminal and run the uvicorn server
 
+## Run Uvicorn 
 ```bash
  uvicorn main:app --reload
 ```
