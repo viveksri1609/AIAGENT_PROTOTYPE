@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Students AI Bot
 
 A small full-stack AI agent prototype with:
@@ -109,3 +110,32 @@ If you want a different local model, update `MODEL` in [backend/agent.py](/Users
 - The current embedding function is deterministic and local, which keeps the prototype easy to run but less capable than a dedicated embedding model.
 
 More detail is available in [docs/architecture.md](/Users/vivek/projects/aiagent_prototype/docs/architecture.md) and [docs/api.md](/Users/vivek/projects/aiagent_prototype/docs/api.md).
+=======
+## AI App Prototype Using FASTAPI Ollama + Llama 3
+
+This application runs locally using **Ollama**.
+
+Download Ollama: https://ollama.com
+
+## Start the server
+```bash
+ollama serve
+```
+The app uses the **Llama 3** model from Meta.
+
+Open a new terminal and run the model
+## Run the Model
+
+
+```bash
+ollama run llama3
+```
+
+Open a new terminal and run the uvicorn server
+
+## Run Uvicorn 
+```bash
+ uvicorn main:app --reload
+```
+
+>>>>>>> d2e3a1a59d3d288d619bda83135f466a25fa2ccc

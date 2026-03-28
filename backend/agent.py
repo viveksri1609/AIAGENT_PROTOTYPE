@@ -19,7 +19,7 @@ except ImportError:
         sync_students_to_vector_db,
     )
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = "http://localhost:11434/api/generate" # this is where the ollama server runs by default
 MODEL = "llama3"
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -73,6 +73,7 @@ def get_session_history(session_id):
 
 def update_session_history(session_id, history):
     memory = load_memory()
+    # storing only the last 20 sessions
     memory[session_id] = history[-20:]   
     save_memory(memory)
 
@@ -194,3 +195,4 @@ def reset_memory(session_id: str):
     memory = load_memory()
     memory.pop(session_id, None)
     save_memory(memory)
+
