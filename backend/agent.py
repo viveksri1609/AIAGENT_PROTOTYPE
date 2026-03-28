@@ -1,13 +1,31 @@
 import json
-import os
-import requests
 import re
-from db import get_student_by_name, get_all_students
+from pathlib import Path
+
+import requests
+
+try:
+    from .db import (
+        get_all_students,
+        get_student_by_name,
+        search_vector_db,
+        sync_students_to_vector_db,
+    )
+except ImportError:
+    from db import (
+        get_all_students,
+        get_student_by_name,
+        search_vector_db,
+        sync_students_to_vector_db,
+    )
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "llama3"
 
-MEMORY_FILE = "memory.json"
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+MEMORY_FILE = DATA_DIR / "memory.json"
+VECTOR_INDEX_READY = False
 
 SYSTEM_PROMPT = """
 You are a student database assistant.
@@ -29,14 +47,15 @@ I don't know
 """
 
 def load_memory():
-    if not os.path.exists(MEMORY_FILE):
+    if not MEMORY_FILE.exists():
         return {}
-    with open(MEMORY_FILE, "r") as f:
+    with MEMORY_FILE.open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_memory(memory):
-    with open(MEMORY_FILE, "w") as f:
+    DATA_DIR.mkdir(exist_ok=True)
+    with MEMORY_FILE.open("w", encoding="utf-8") as f:
         json.dump(memory, f, indent=2)
 
 
@@ -70,9 +89,36 @@ def call_llm(messages):
             "model": MODEL,
             "prompt": prompt,
             "stream": False
-        }
+        },
+        timeout=60
     )
     return response.json()["response"]
+
+
+def ensure_vector_index():
+    global VECTOR_INDEX_READY
+
+    if VECTOR_INDEX_READY:
+        return
+
+    sync_students_to_vector_db()
+    VECTOR_INDEX_READY = True
+
+
+def build_rag_context(user_message: str):
+    ensure_vector_index()
+    matches = search_vector_db(user_message, top_k=3)
+
+    if not matches:
+        return None
+
+    context_lines = []
+    for match in matches:
+        context_lines.append(
+            f"- score={match['score']} | {match['content']}"
+        )
+
+    return "\n".join(context_lines)
 
 
 
@@ -82,7 +128,20 @@ def run_agent(user_message: str, session_id: str = "default"):
 
     history.append({"role": "user", "content": user_message})
 
-    llm_reply = call_llm(history)
+    rag_context = build_rag_context(user_message)
+    llm_input = list(history)
+
+    if rag_context:
+        llm_input.append({
+            "role": "system",
+            "content": (
+                "Relevant vector search context for the latest user query:\n"
+                f"{rag_context}\n"
+                "Use this context when helpful, but use tools for exact database lookups."
+            )
+        })
+
+    llm_reply = call_llm(llm_input)
 
     tool_line = None
 
@@ -109,6 +168,7 @@ def run_agent(user_message: str, session_id: str = "default"):
         tool_prompt = f"""
 User asked: {user_message}
 Tool result: {data}
+Relevant retrieved context: {rag_context or "None"}
 Explain clearly to user.
 """
 
