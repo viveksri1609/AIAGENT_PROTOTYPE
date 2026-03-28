@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Students AI Bot
 
 A small full-stack AI agent prototype with:
@@ -137,5 +136,3 @@ Open a new terminal and run the uvicorn server
 ```bash
  uvicorn main:app --reload
 ```
-
->>>>>>> d2e3a1a59d3d288d619bda83135f466a25fa2ccc
